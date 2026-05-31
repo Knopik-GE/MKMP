@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>MatheArena</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#1a1a2e;font-family:Arial,sans-serif;color:#fff;min-height:100vh;padding:20px}
+h1{color:#FFD93D;font-size:2rem;text-align:center;margin-bottom:24px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:700px;margin:0 auto}
+.card{background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.15);border-radius:20px;padding:20px;text-align:center;cursor:pointer;text-decoration:none;color:#fff;display:block;transition:transform .15s}
+.card:active{transform:scale(.97)}
+.card .icon{font-size:2.5rem;margin-bottom:8px}
+.card .name{font-size:1.1rem;font-weight:700}
+.card .sub{font-size:.8rem;opacity:.55;margin-top:4px}
+.full{grid-column:span 2}
+</style>
+</head>
+<body>
+<h1>⚔️ MatheArena</h1>
+<div class="grid">
+  <a class="card" href="rechnen.html">
+    <div class="icon">🔢</div>
+    <div class="name">Rechnen</div>
+    <div class="sub">+ − × ÷ · Duell · Turnier</div>
+  </a>
+  <a class="card" href="rechnen.html?v=fraction">
+    <div class="icon">½</div>
+    <div class="name">Brüche</div>
+    <div class="sub">Kürzen, addieren, Dezimal</div>
+  </a>
+  <a class="card" href="formeln.html">
+    <div class="icon">📐</div>
+    <div class="name">Formeln</div>
+    <div class="sub">Umstellen · Fläche · Volumen</div>
+  </a>
+  <a class="card" href="formen.html">
+    <div class="icon">🔷</div>
+    <div class="name">Formen & Körper</div>
+    <div class="sub">Erkennen · Eigenschaften</div>
+  </a>
+  <a class="card" href="binom.html">
+    <div class="icon">🔣</div>
+    <div class="name">Binomische Formeln</div>
+    <div class="sub">(a+b)² · (a-b)² · (a+b)(a-b)</div>
+  </a>
+  <a class="card" href="gleichungen.html">
+    <div class="icon">🔡</div>
+    <div class="name">Gleichungen</div>
+    <div class="sub">x ausrechnen</div>
+  </a>
+  <a class="card full" href="rechnen.html?v=all">
+    <div class="icon">🌀</div>
+    <div class="name">Alles gemischt</div>
+    <div class="sub">Alle Themen zufällig kombiniert</div>
+  </a>
+</div>
+</body>
+</html>
