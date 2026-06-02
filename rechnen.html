@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Rechnen – MatheArena</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--gold:#FFD93D;--purple:#a29bfe;--green:#2ecc71;--red:#ff4444;--p1:#FF6B6B;--p2:#4ECDC4}
+body{background:#1a1a2e;font-family:Arial,sans-serif;color:#fff;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;gap:12px}
+.screen{display:flex;flex-direction:column;align-items:center;gap:14px;width:100%;max-width:700px}
+.screen.hidden{display:none}
+
+/* SETUP */
+h2{color:var(--gold);font-size:1.8rem;text-align:center}
+.section-label{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:rgba(255,255,255,.4)}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.sel-btn{background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.15);border-radius:14px;padding:10px 18px;font-size:1rem;font-weight:700;color:rgba(255,255,255,.65);cursor:pointer;transition:all .2s;-webkit-tap-highlight-color:transparent}
+.sel-btn.active{background:var(--gold);border-color:var(--gold);color:#1a1a2e}
+.name-row{display:flex;gap:14px;justify-content:center}
+.name-input{background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.2);border-radius:10px;padding:8px 14px;font-size:1.1rem;color:#fff;outline:none;width:150px;text-align:center}
+.start-btn{background:var(--gold);color:#1a1a2e;border:none;border-radius:50px;padding:14px 48px;font-size:1.3rem;font-weight:900;cursor:pointer;box-shadow:0 8px 28px rgba(255,217,61,.4)}
+.back-link{color:rgba(255,255,255,.3);font-size:.85rem;text-decoration:none;margin-top:4px}
+
+/* SOLO GAME */
+.progress-wrap{width:100%;height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden}
+.progress-bar{height:100%;background:var(--purple);border-radius:4px;transition:width .3s}
+.timer-bar-wrap{width:100%;height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden}
+.timer-bar{height:100%;background:var(--gold);border-radius:4px;transition:width 1s linear}
+.timer-bar.warn{background:var(--red)}
+.q-card{background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.1);border-radius:20px;padding:20px 28px;width:100%;text-align:center}
+.q-tag{font-size:.8rem;color:var(--purple);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px}
+.q-text{font-size:clamp(1.8rem,5vw,3rem);font-weight:900}
+.ans-display{font-size:2.2rem;font-weight:900;min-width:120px;min-height:60px;border-radius:14px;border:3px solid rgba(162,155,254,.4);background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;padding:0 16px}
+.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;width:100%;max-width:300px}
+.n-btn{aspect-ratio:1;border:none;border-radius:12px;font-size:1.5rem;font-weight:900;background:rgba(162,155,254,.15);color:var(--purple);border:2px solid rgba(162,155,254,.25);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.n-btn:active{transform:scale(.9)}
+.n-btn.del{background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);font-size:1.1rem}
+.n-btn.ok{background:var(--purple);color:#fff;border-color:var(--purple)}
+.n-btn.neg{background:rgba(255,255,255,.06);color:rgba(255,255,255,.5)}
+.feedback{font-size:1.1rem;font-weight:700;min-height:26px;text-align:center}
+.ok-fb{color:var(--green)}.nok-fb{color:var(--red)}
+.stats{font-size:.9rem;color:rgba(255,255,255,.4)}
+
+/* DUELL GAME */
+.duell-header{display:flex;justify-content:space-between;align-items:center;width:100%}
+.player-score{font-size:1.2rem;font-weight:900;text-align:center;padding:8px 16px;border-radius:14px}
+.p1-score{background:rgba(255,107,107,.2);color:var(--p1)}
+.p2-score{background:rgba(78,205,196,.2);color:var(--p2)}
+.duell-q{font-size:clamp(2rem,6vw,4rem);font-weight:900;text-align:center;background:rgba(255,255,255,.06);border-radius:20px;padding:20px 28px;width:100%}
+.buzz-btns{display:grid;grid-template-columns:1fr 1fr;gap:16px;width:100%}
+.buzz-btn{border:none;border-radius:20px;padding:28px 16px;font-size:1.3rem;font-weight:900;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .1s}
+.buzz-btn:active{transform:scale(.96)}
+.buzz-p1{background:var(--p1);color:#fff}
+.buzz-p2{background:var(--p2);color:#1a1a2e}
+.buzz-waiting{opacity:.4;pointer-events:none}
+.answer-input-wrap{width:100%;display:flex;flex-direction:column;align-items:center;gap:10px}
+.who-answers{font-size:1.1rem;font-weight:700;text-align:center}
+
+/* RESULT */
+.result-cards{display:flex;gap:20px;justify-content:center;flex-wrap:wrap}
+.result-card{background:rgba(255,255,255,.07);border-radius:20px;padding:20px 28px;text-align:center;min-width:140px}
+.result-card.winner{border:2px solid var(--gold);box-shadow:0 8px 32px rgba(255,217,61,.3)}
+.r-name{font-size:1.1rem;font-weight:700;margin-bottom:4px}
+.r-score{font-size:3.5rem;font-weight:900}
+.r-detail{font-size:.8rem;color:rgba(255,255,255,.4);margin-top:4px}
+.confetti-piece{position:fixed;border-radius:2px;animation:fall linear forwards;z-index:999;pointer-events:none}
+@keyframes fall{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
+</style>
+</head>
+<body>
+
+<!-- SETUP -->
+<div id="setup" class="screen">
+  <h2>🔢 Rechnen</h2>
+  <div class="section-label">Modus</div>
+  <div class="btn-row" id="modeBtns">
+    <button class="sel-btn active" data-m="solo">🧑 Üben</button>
+    <button class="sel-btn" data-m="duell">⚔️ Duell</button>
+  </div>
+  <div id="nameRow" class="name-row hidden">
+    <input class="name-input" id="name1" value="Spieler 1" maxlength="12">
+    <input class="name-input" id="name2" value="Spieler 2" maxlength="12">
+  </div>
+  <div class="section-label">Variante</div>
+  <div class="btn-row" id="varBtns">
+    <button class="sel-btn active" data-v="positive">✅ Positiv</button>
+    <button class="sel-btn" data-v="negative">➖ Negativ</button>
+    <button class="sel-btn" data-v="decimal">🔟 Dezimal</button>
+    <button class="sel-btn" data-v="fraction">½ Brüche</button>
+    <button class="sel-btn" data-v="all">🌀 Alles</button>
+  </div>
+  <div class="section-label" id="countLabel">Anzahl Aufgaben</div>
+  <div class="btn-row" id="countBtns">
+    <button class="sel-btn" data-c="10">10</button>
+    <button class="sel-btn active" data-c="20">20</button>
+    <button class="sel-btn" data-c="30">30</button>
+  </div>
+  <div class="section-label" id="timeLabel">Oder auf Zeit</div>
+  <div class="btn-row" id="timeBtns">
+    <button class="sel-btn" data-t="0">Kein Timer</button>
+    <button class="sel-btn active" data-t="60">60 Sek</button>
+    <button class="sel-btn" data-t="120">120 Sek</button>
+    <button class="sel-btn" data-t="300">300 Sek</button>
+  </div>
+  <button class="start-btn" onclick="startGame()">Los geht's! 🚀</button>
+  <a class="back-link" href="index.html">← Zurück</a>
+</div>
+
+<!-- SOLO GAME -->
+<div id="soloGame" class="screen hidden">
+  <div style="display:flex;justify-content:space-between;width:100%">
+    <div class="stats" id="soloScore">0 ✓  0 ✗</div>
+    <div class="stats" id="soloCounter">1 / 20</div>
+    <div class="stats" id="soloTimer"></div>
+  </div>
+  <div class="progress-wrap" id="progressWrap" style="display:none">
+    <div class="progress-bar" id="progressBar" style="width:0%"></div>
+  </div>
+  <div class="timer-bar-wrap" id="timerWrap" style="display:none">
+    <div class="timer-bar" id="timerBar" style="width:100%"></div>
+  </div>
+  <div class="q-card">
+    <div class="q-tag" id="soloTag">Rechnen</div>
+    <div class="q-text" id="soloQ">?</div>
+  </div>
+  <div class="ans-display" id="soloDisplay">_</div>
+  <div class="numpad" id="soloPad"></div>
+  <div class="feedback" id="soloFb"></div>
+  <button onclick="endGame()" style="background:none;border:none;color:rgba(255,255,255,.3);font-size:.85rem;cursor:pointer;margin-top:4px">⏹ Beenden</button>
+</div>
+
+<!-- DUELL GAME -->
+<div id="duellGame" class="screen hidden">
+  <div class="duell-header">
+    <div class="player-score p1-score"><span id="d-name1">Sp1</span><br><span id="d-score1" style="font-size:2rem">0</span></div>
+    <div style="text-align:center">
+      <div class="stats" id="duellCounter">1 / 20</div>
+      <div class="stats" id="duellTimer"></div>
+    </div>
+    <div class="player-score p2-score"><span id="d-name2">Sp2</span><br><span id="d-score2" style="font-size:2rem">0</span></div>
+  </div>
+  <div class="duell-q" id="duellQ">?</div>
+  <div id="duellBuzzArea">
+    <div class="buzz-btns">
+      <button class="buzz-btn buzz-p1" onclick="buzz(0)" id="buzzBtn1">🔴 Buzz!</button>
+      <button class="buzz-btn buzz-p2" onclick="buzz(1)" id="buzzBtn2">🟢 Buzz!</button>
+    </div>
+  </div>
+  <div id="duellAnswerArea" class="hidden answer-input-wrap">
+    <div class="who-answers" id="whoAnswers">Spieler 1 antwortet:</div>
+    <div class="ans-display" id="duellDisplay">_</div>
+    <div class="numpad" id="duellPad"></div>
+    <div class="feedback" id="duellFb"></div>
+  </div>
+  <button onclick="endGame()" style="background:none;border:none;color:rgba(255,255,255,.3);font-size:.85rem;cursor:pointer;margin-top:8px">⏹ Beenden</button>
+</div>
+
+<!-- RESULT -->
+<div id="result" class="screen hidden">
+  <h2 id="resultTitle">Ergebnis</h2>
+  <div class="result-cards" id="resultCards"></div>
+  <div class="btn-row" style="margin-top:8px">
+    <button class="start-btn" onclick="showSetup()">Nochmal 🔄</button>
+  </div>
+  <a class="back-link" href="index.html">← Hauptmenü</a>
+</div>
+
+<script>
+// ── CONFIG ──
+const params=new URLSearchParams(location.search);
+let variant=params.get('v')||'positive';
+let mode='solo', totalQ=20, timeLimit=60;
+let names=['Spieler 1','Spieler 2'];
+
+// ── STATE ──
+let correct=0,wrong=0,scores=[0,0],qIdx=0;
+let input='',neg=false,currentQ={};
+let timerInterval=null,timeLeft=0;
+let buzzed=-1;
+
+// ── SETUP ──
+document.getElementById('modeBtns').onclick=e=>{
+  const b=e.target.closest('[data-m]');if(!b)return;
+  document.querySelectorAll('#modeBtns .sel-btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');mode=b.dataset.m;
+  document.getElementById('nameRow').classList.toggle('hidden',mode!=='duell');
+};
+document.getElementById('varBtns').onclick=e=>{
+  const b=e.target.closest('[data-v]');if(!b)return;
+  document.querySelectorAll('#varBtns .sel-btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');variant=b.dataset.v;
+};
+document.getElementById('countBtns').onclick=e=>{
+  const b=e.target.closest('[data-c]');if(!b)return;
+  document.querySelectorAll('#countBtns .sel-btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');totalQ=parseInt(b.dataset.c);
+};
+document.getElementById('timeBtns').onclick=e=>{
+  const b=e.target.closest('[data-t]');if(!b)return;
+  document.querySelectorAll('#timeBtns .sel-btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');timeLimit=parseInt(b.dataset.t);
+};
+
+// Pre-select variant from URL
+document.querySelectorAll('#varBtns .sel-btn').forEach(b=>{
+  if(b.dataset.v===variant){
+    document.querySelectorAll('#varBtns .sel-btn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+  }
+});
+
+// ── QUESTION GENERATORS ──
+function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function rndNZ(a,b){let v;do{v=rnd(a,b);}while(v===0);return v;}
+
+function makePositive(){
+  const ops=['+','-','×','÷'];const op=ops[rnd(0,3)];
+  let a,b,ans;
+  if(op==='+'){a=rnd(1,99);b=rnd(1,99-a);ans=a+b;}
+  else if(op==='-'){a=rnd(2,99);b=rnd(1,a-1);ans=a-b;}
+  else if(op==='×'){a=rndNZ(2,10);b=rndNZ(2,10);ans=a*b;}
+  else{b=rndNZ(2,10);ans=rndNZ(2,10);a=b*ans;}
+  return{q:`${a} ${op} ${b} = ?`,a:ans,tag:'Rechnen'};
+}
+function makeNegative(){
+  const ops=['+','-','×','÷'];const op=ops[rnd(0,3)];
+  let a,b,ans;
+  if(op==='+'){a=rnd(-50,50);b=rnd(-50,50);ans=a+b;}
+  else if(op==='-'){a=rnd(-50,50);b=rnd(-50,50);ans=a-b;}
+  else if(op==='×'){a=rndNZ(-10,10);b=rndNZ(-10,10);ans=a*b;}
+  else{b=rndNZ(-9,-2);ans=rndNZ(2,9);a=b*ans;}
+  if(Math.abs(ans)>100)return makeNegative();
+  return{q:`${a} ${op} ${b} = ?`,a:ans,tag:'Negativ'};
+}
+function makeDecimal(){
+  const f=[10,100,1000][rnd(0,2)];
+  const op=Math.random()<.5?'×':'÷';
+  const intP=rnd(1,9),decP=rnd(1,9);
+  let aStr,ansStr;
+  if(op==='×'){
+    const a=intP+decP*(f===10?.1:f===100?.01:.001);
+    const ans=Math.round(a*f*1000)/1000;
+    aStr=String(Math.round(a*10000)/10000).replace('.',',');
+    ansStr=String(ans);
+  }else{
+    const ans=intP+decP*(f===10?.1:f===100?.01:.001);
+    const a=Math.round(ans*f*1000)/1000;
+    aStr=String(a);
+    ansStr=String(Math.round(ans*10000)/10000).replace('.',',');
+  }
+  return{q:`${aStr} ${op} ${f} = ?`,a:ansStr,tag:'Dezimal',isStr:true};
+}
+function makeFraction(){
+  const types=[
+    ()=>{const d=[2,3,4,5,6,8,10][rnd(0,6)];const n=rnd(1,d-1);const m=rnd(2,5);return{q:`${n*m}/${d*m} = ?/${d}`,a:n,tag:'Brüche'};},
+    ()=>{const map={2:'0,5',4_1:'0,25',4_3:'0,75',5_1:'0,2',5_2:'0,4',5_3:'0,6',5_4:'0,8',10_1:'0,1',10_3:'0,3',10_7:'0,7'};const pairs=[[2,1],[4,1],[4,3],[5,1],[5,2],[5,3],[5,4],[10,1],[10,3],[10,7]];const[d,n]=pairs[rnd(0,pairs.length-1)];const ans=map[`${d}_${n}`]||map[d];if(!ans)return null;return{q:`${n}/${d} = ?`,a:ans,tag:'Brüche',isStr:true};},
+  ];
+  let q=null;while(!q){const t=types[rnd(0,1)];q=t();}return q;
+}
+function makeQ(){
+  if(variant==='positive')return makePositive();
+  if(variant==='negative')return makeNegative();
+  if(variant==='decimal')return makeDecimal();
+  if(variant==='fraction')return makeFraction();
+  const r=Math.random();
+  if(r<.25)return makePositive();
+  if(r<.5)return makeNegative();
+  if(r<.75)return makeDecimal();
+  return makeFraction();
+}
+
+// ── NUMPAD ──
+function buildPad(id,submitFn){
+  const pad=document.getElementById(id);pad.innerHTML='';
+  const needComma=variant==='decimal'||variant==='fraction'||variant==='all';
+  const needNeg=variant==='negative'||variant==='all';
+  [1,2,3,4,5,6,7,8,9].forEach(n=>{
+    addBtn(pad,String(n),()=>pressNum(n),id);
+  });
+  if(needNeg){addBtn(pad,'±',()=>pressSign(),id,'neg');}
+  else if(needComma){addBtn(pad,',',()=>pressComma(),id,'neg');}
+  else{addBtn(pad,'⌫',()=>pressDel(),id,'del');}
+  addBtn(pad,'0',()=>pressNum(0),id);
+  if(needNeg&&needComma){addBtn(pad,',',()=>pressComma(),id,'neg');}
+  if(needNeg||needComma){addBtn(pad,'⌫',()=>pressDel(),id,'del');}
+  addBtn(pad,'✓',submitFn,id,'ok');
+  if(!needNeg&&!needComma)addBtn(pad,'⌫',()=>pressDel(),id,'del');
+}
+function addBtn(pad,label,action,padId,cls=''){
+  const b=document.createElement('button');
+  b.className='n-btn '+(cls||'');b.textContent=label;
+  b.addEventListener('touchstart',e=>{e.preventDefault();action();},{passive:false});
+  b.addEventListener('click',action);
+  pad.appendChild(b);
+}
+
+// ── INPUT ──
+function pressNum(v){if(input.length>=6)return;input+=v;updateDisplays();}
+function pressDel(){if(!input&&neg)neg=false;else input=input.slice(0,-1);updateDisplays();}
+function pressSign(){neg=!neg;updateDisplays();}
+function pressComma(){if(input.includes(','))return;if(!input)input='0';input+=',';updateDisplays();}
+function updateDisplays(){
+  const sign=neg?'−':'';
+  const val=input?sign+input:(sign||'_');
+  ['soloDisplay','duellDisplay'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.textContent=val;
+  });
+}
+function getVal(){
+  if(!input)return null;
+  const raw=input.includes(',')?parseFloat(input.replace(',','.')):parseInt(input);
+  return neg?-Math.abs(raw):raw;
+}
+function getValStr(){
+  if(!input)return null;
+  return neg?'−'+input:input;
+}
+function checkAnswer(){
+  const q=currentQ;
+  if(q.isStr){
+    const given=(getValStr()||'').replace('−','-');
+    const expected=String(q.a);
+    return given.replace(',','.')===expected.replace(',','.');
+  }
+  const val=getVal();
+  return val===q.a;
+}
+
+// ── TIMER ──
+function startTimer(display,barId,wrapId,total,onEnd){
+  timeLeft=total;
+  const wrap=document.getElementById(wrapId);
+  const bar=document.getElementById(barId);
+  if(wrap)wrap.style.display='block';
+  updateTimerDisplay(display,bar,total,total);
+  timerInterval=setInterval(()=>{
+    timeLeft--;
+    updateTimerDisplay(display,bar,timeLeft,total);
+    if(timeLeft<=0){clearInterval(timerInterval);onEnd();}
+  },1000);
+}
+function updateTimerDisplay(displayId,bar,left,total){
+  const el=document.getElementById(displayId);
+  if(el)el.textContent=left+'s';
+  if(bar){bar.style.width=(left/total*100)+'%';bar.classList.toggle('warn',left/total<.25);}
+}
+function stopTimer(){clearInterval(timerInterval);timerInterval=null;}
+
+// ── SOLO GAME ──
+function startSolo(){
+  correct=0;wrong=0;qIdx=0;input='';neg=false;
+  document.getElementById('progressWrap').style.display=timeLimit?'none':'block';
+  document.getElementById('timerWrap').style.display=timeLimit?'block':'none';
+  buildPad('soloPad',submitSolo);
+  showScreen('soloGame');
+  nextSoloQ();
+  if(timeLimit)startTimer('soloTimer','timerBar','timerWrap',timeLimit,endGame);
+}
+function nextSoloQ(){
+  if(!timeLimit&&qIdx>=totalQ){endGame();return;}
+  currentQ=makeQ();
+  document.getElementById('soloQ').textContent=currentQ.q;
+  document.getElementById('soloTag').textContent=currentQ.tag||'Rechnen';
+  input='';neg=false;updateDisplays();
+  document.getElementById('soloFb').textContent='';
+  document.getElementById('soloFb').className='feedback';
+  if(!timeLimit){
+    document.getElementById('progressBar').style.width=(qIdx/totalQ*100)+'%';
+    document.getElementById('soloCounter').textContent=(qIdx+1)+' / '+totalQ;
+  } else {
+    document.getElementById('soloCounter').textContent=qIdx+' ✓';
+  }
+}
+function submitSolo(){
+  if(!input)return;
+  const ok=checkAnswer();
+  if(ok){correct++;document.getElementById('soloFb').textContent='✓ Richtig!';document.getElementById('soloFb').className='feedback ok-fb';}
+  else{wrong++;document.getElementById('soloFb').textContent='✗ Falsch! → '+currentQ.a;document.getElementById('soloFb').className='feedback nok-fb';}
+  document.getElementById('soloScore').textContent=correct+' ✓  '+wrong+' ✗';
+  qIdx++;
+  setTimeout(nextSoloQ,900);
+}
+
+// ── DUELL GAME ──
+function startDuell(){
+  scores=[0,0];qIdx=0;input='';neg=false;buzzed=-1;
+  document.getElementById('d-name1').textContent=names[0];
+  document.getElementById('d-name2').textContent=names[1];
+  document.getElementById('buzzBtn1').textContent='🔴 '+names[0];
+  document.getElementById('buzzBtn2').textContent='🟢 '+names[1];
+  buildPad('duellPad',submitDuell);
+  showScreen('duellGame');
+  nextDuellQ();
+  if(timeLimit)startTimer('duellTimer','','',timeLimit,endGame);
+}
+function nextDuellQ(){
+  if(!timeLimit&&qIdx>=totalQ){endGame();return;}
+  currentQ=makeQ();
+  document.getElementById('duellQ').textContent=currentQ.q;
+  document.getElementById('duellCounter').textContent=timeLimit?qIdx+' ✓':(qIdx+1)+' / '+totalQ;
+  document.getElementById('duellBuzzArea').classList.remove('hidden');
+  document.getElementById('duellAnswerArea').classList.add('hidden');
+  document.getElementById('duellFb').textContent='';
+  buzzed=-1;input='';neg=false;updateDisplays();
+  document.getElementById('buzzBtn1').classList.remove('buzz-waiting');
+  document.getElementById('buzzBtn2').classList.remove('buzz-waiting');
+}
+function buzz(player){
+  buzzed=player;
+  document.getElementById('duellBuzzArea').classList.add('hidden');
+  document.getElementById('duellAnswerArea').classList.remove('hidden');
+  document.getElementById('whoAnswers').textContent=names[player]+' antwortet:';
+  document.getElementById('whoAnswers').style.color=player===0?'var(--p1)':'var(--p2)';
+}
+function submitDuell(){
+  if(!input)return;
+  const ok=checkAnswer();
+  const fb=document.getElementById('duellFb');
+  if(ok){
+    scores[buzzed]++;
+    document.getElementById("d-score"+(buzzed+1)).textContent=scores[buzzed];
+    fb.textContent='✓ Richtig!';fb.className='feedback ok-fb';
+  }else{
+    fb.textContent='✗ Falsch! → '+currentQ.a;fb.className='feedback nok-fb';
+  }
+  qIdx++;
+  setTimeout(nextDuellQ,1000);
+}
+
+// ── GAME FLOW ──
+function startGame(){
+  names[0]=document.getElementById('name1').value||'Spieler 1';
+  names[1]=document.getElementById('name2').value||'Spieler 2';
+  if(mode==='duell')startDuell();
+  else startSolo();
+}
+function endGame(){
+  stopTimer();
+  showScreen('result');
+  if(mode==='solo'){
+    document.getElementById('resultTitle').textContent='✅ Ergebnis';
+    document.getElementById('resultCards').innerHTML=`
+      <div class="result-card winner">
+        <div class="r-name">${names[0]}</div>
+        <div class="r-score">${correct}</div>
+        <div class="r-detail">${wrong} Fehler</div>
+      </div>`;
+  }else{
+    const winner=scores[0]>scores[1]?0:scores[1]>scores[0]?1:-1;
+    document.getElementById('resultTitle').textContent=winner>=0?'🏆 '+names[winner]+' gewinnt!':'🤝 Unentschieden!';
+    document.getElementById('resultCards').innerHTML=`
+      <div class="result-card${winner===0?' winner':''}">
+        <div class="r-name" style="color:var(--p1)">${names[0]}</div>
+        <div class="r-score">${scores[0]}</div>
+      </div>
+      <div class="result-card${winner===1?' winner':''}">
+        <div class="r-name" style="color:var(--p2)">${names[1]}</div>
+        <div class="r-score">${scores[1]}</div>
+      </div>`;
+    if(winner>=0)spawnConfetti();
+  }
+}
+function showSetup(){showScreen('setup');}
+function showScreen(id){
+  ['setup','soloGame','duellGame','result'].forEach(s=>document.getElementById(s).classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
+function spawnConfetti(){
+  const c=['#FF6B6B','#4ECDC4','#FFD93D','#a29bfe','#fd79a8'];
+  for(let i=0;i<50;i++){
+    const el=document.createElement('div');el.className='confetti-piece';
+    el.style.cssText=`left:${Math.random()*100}vw;background:${c[~~(Math.random()*c.length)]};animation-duration:${1.5+Math.random()*2}s;animation-delay:${Math.random()*.8}s;width:${8+Math.random()*8}px;height:${10+Math.random()*10}px;`;
+    document.body.appendChild(el);setTimeout(()=>el.remove(),4000);
+  }
+}
+// Fix typo in submitDuell
+</script>
+</body>
+</html>
